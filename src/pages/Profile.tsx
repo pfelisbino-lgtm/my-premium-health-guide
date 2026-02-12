@@ -47,11 +47,24 @@ const Profile = () => {
 
   const handleSave = async () => {
     if (!user) return;
+
+    const cw = currentWeight ? parseFloat(currentWeight) : null;
+    const gw = goalWeight ? parseFloat(goalWeight) : null;
+
+    if (cw !== null && (cw <= 0 || cw > 500)) {
+      toast({ title: 'Peso inválido', description: 'O peso atual deve estar entre 0 e 500 kg.', variant: 'destructive' });
+      return;
+    }
+    if (gw !== null && (gw <= 0 || gw > 500)) {
+      toast({ title: 'Meta inválida', description: 'A meta de peso deve estar entre 0 e 500 kg.', variant: 'destructive' });
+      return;
+    }
+
     setSaving(true);
     const { error } = await supabase.from('profiles').update({
       full_name: fullName,
-      current_weight: currentWeight ? parseFloat(currentWeight) : null,
-      goal_weight: goalWeight ? parseFloat(goalWeight) : null,
+      current_weight: cw,
+      goal_weight: gw,
       dietary_preferences: dietary,
     }).eq('user_id', user.id);
     setSaving(false);
