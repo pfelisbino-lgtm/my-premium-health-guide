@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Heart, Clock, Flame, Search, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getFriendlyError } from '@/lib/error-utils';
 
 const categories = ['all', 'breakfast', 'lunch', 'dinner', 'snack', 'dessert'] as const;
 
@@ -30,11 +31,19 @@ const Recipes = () => {
   const toggleFav = async (recipeId: string) => {
     if (!user) return;
     if (favIds.includes(recipeId)) {
-      await supabase.from('favorites').delete().eq('user_id', user.id).eq('recipe_id', recipeId);
+      const { error } = await supabase.from('favorites').delete().eq('user_id', user.id).eq('recipe_id', recipeId);
+      if (error) {
+        toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
+        return;
+      }
       setFavIds((prev) => prev.filter((id) => id !== recipeId));
       toast({ title: 'Removido dos favoritos' });
     } else {
-      await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipeId });
+      const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipeId });
+      if (error) {
+        toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
+        return;
+      }
       setFavIds((prev) => [...prev, recipeId]);
       toast({ title: 'Adicionado aos favoritos ❤️' });
     }
