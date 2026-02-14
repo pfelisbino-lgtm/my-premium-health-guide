@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
+import { getFriendlyError } from '@/lib/error-utils';
 import { Save } from 'lucide-react';
 
 const dietaryOptions = ['vegetariano', 'vegano', 'sem glúten', 'sem lactose', 'sem açúcar'];
@@ -69,7 +70,7 @@ const Profile = () => {
     }).eq('user_id', user.id);
     setSaving(false);
     if (error) {
-      toast({ title: 'Erro ao guardar', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao guardar', description: getFriendlyError(error), variant: 'destructive' });
     } else {
       toast({ title: 'Perfil atualizado ✅' });
     }

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { getFriendlyError } from '@/lib/error-utils';
 import { Leaf, ArrowLeft } from 'lucide-react';
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -25,7 +26,7 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro ao entrar', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao entrar', description: getFriendlyError(error), variant: 'destructive' });
     } else {
       navigate('/');
     }
@@ -44,7 +45,7 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro ao registar', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao registar', description: getFriendlyError(error), variant: 'destructive' });
     } else {
       toast({ title: 'Registo efetuado!', description: 'Verifique o seu email para confirmar a conta.' });
       setMode('login');
@@ -59,7 +60,7 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
     } else {
       toast({ title: 'Email enviado', description: 'Verifique a sua caixa de entrada.' });
       setMode('login');
