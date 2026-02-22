@@ -2,15 +2,18 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, UtensilsCrossed, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/i18n/LanguageContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   const navItems = [
-    { to: '/', icon: Home, label: 'Início' },
-    { to: '/recipes', icon: UtensilsCrossed, label: 'Receitas' },
-    { to: '/profile', icon: User, label: 'Perfil' },
+    { to: '/', icon: Home, label: t('navHome') },
+    { to: '/recipes', icon: UtensilsCrossed, label: t('navRecipes') },
+    { to: '/profile', icon: User, label: t('navProfile') },
   ];
 
   return (
@@ -21,9 +24,12 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
             <span className="text-xl">🌿</span>
             <span>My Glowfit</span>
           </Link>
-          <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors p-2">
-            <LogOut className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <LanguageSwitcher />
+            <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors p-2">
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </header>
 

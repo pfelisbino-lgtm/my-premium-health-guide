@@ -10,25 +10,28 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useToast } from '@/hooks/use-toast';
 import { getFriendlyError } from '@/lib/error-utils';
 import { Save } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-const dietaryOptions = ['vegetariano', 'vegano', 'sem glúten', 'sem lactose', 'sem açúcar'];
-
-const faqs = [
-  { q: 'Como funciona o acesso premium?', a: 'Após a compra na Hotmart, o teu acesso é ativado automaticamente via webhook. Basta fazer login com o email usado na compra.' },
-  { q: 'Posso cancelar a minha assinatura?', a: 'Sim, podes cancelar a qualquer momento pela plataforma Hotmart. O acesso permanece ativo até o fim do período pago.' },
-  { q: 'Como altero as minhas metas?', a: 'Na secção de Perfil, podes editar o teu peso atual e meta de peso a qualquer momento.' },
-  { q: 'Onde encontro suporte?', a: 'Envia um email para suporte@myglowfit.com e responderemos em até 24 horas.' },
-];
+const dietaryKeys = ['dietVegetarian', 'dietVegan', 'dietGlutenFree', 'dietLactoseFree', 'dietSugarFree'] as const;
+const dietaryValues = ['vegetariano', 'vegano', 'sem glúten', 'sem lactose', 'sem açúcar'];
 
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState('');
   const [currentWeight, setCurrentWeight] = useState('');
   const [goalWeight, setGoalWeight] = useState('');
   const [dietary, setDietary] = useState<string[]>([]);
   const [subStatus, setSubStatus] = useState('inactive');
   const [saving, setSaving] = useState(false);
+
+  const faqs = [
+    { q: t('faq1q'), a: t('faq1a') },
+    { q: t('faq2q'), a: t('faq2a') },
+    { q: t('faq3q'), a: t('faq3a') },
+    { q: t('faq4q'), a: t('faq4a') },
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -53,11 +56,11 @@ const Profile = () => {
     const gw = goalWeight ? parseFloat(goalWeight) : null;
 
     if (cw !== null && (cw <= 0 || cw > 500)) {
-      toast({ title: 'Peso inválido', description: 'O peso atual deve estar entre 0 e 500 kg.', variant: 'destructive' });
+      toast({ title: t('profileInvalidWeight'), description: t('profileInvalidWeightDesc'), variant: 'destructive' });
       return;
     }
     if (gw !== null && (gw <= 0 || gw > 500)) {
-      toast({ title: 'Meta inválida', description: 'A meta de peso deve estar entre 0 e 500 kg.', variant: 'destructive' });
+      toast({ title: t('profileInvalidGoal'), description: t('profileInvalidGoalDesc'), variant: 'destructive' });
       return;
     }
 
@@ -70,9 +73,9 @@ const Profile = () => {
     }).eq('user_id', user.id);
     setSaving(false);
     if (error) {
-      toast({ title: 'Erro ao guardar', description: getFriendlyError(error), variant: 'destructive' });
+      toast({ title: t('profileSaveError'), description: getFriendlyError(error), variant: 'destructive' });
     } else {
-      toast({ title: 'Perfil atualizado ✅' });
+      toast({ title: t('profileUpdated') });
     }
   };
 
@@ -82,60 +85,57 @@ const Profile = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Perfil</h1>
+      <h1 className="text-2xl font-bold text-foreground">{t('profileTitle')}</h1>
 
-      {/* Subscription status */}
       <Card>
         <CardContent className="flex items-center justify-between py-4">
-          <span className="text-sm font-medium">Estado da Assinatura</span>
+          <span className="text-sm font-medium">{t('profileSubStatus')}</span>
           <Badge variant={subStatus === 'active' ? 'default' : 'secondary'}>
-            {subStatus === 'active' ? '✅ Ativa' : '⏸️ Inativa'}
+            {subStatus === 'active' ? t('profileActive') : t('profileInactive')}
           </Badge>
         </CardContent>
       </Card>
 
-      {/* Edit profile */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Dados Pessoais</CardTitle>
+          <CardTitle className="text-base">{t('profilePersonalData')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Nome</Label>
+            <Label htmlFor="fullName">{t('profileName')}</Label>
             <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>{t('profileEmail')}</Label>
             <Input value={user?.email || ''} disabled className="opacity-60" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="cw">Peso Atual (kg)</Label>
+              <Label htmlFor="cw">{t('profileCurrentWeight')}</Label>
               <Input id="cw" type="number" value={currentWeight} onChange={(e) => setCurrentWeight(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gw">Meta de Peso (kg)</Label>
+              <Label htmlFor="gw">{t('profileGoalWeight')}</Label>
               <Input id="gw" type="number" value={goalWeight} onChange={(e) => setGoalWeight(e.target.value)} />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Dietary preferences */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Preferências Alimentares</CardTitle>
+          <CardTitle className="text-base">{t('profileDietaryPrefs')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {dietaryOptions.map((option) => (
+            {dietaryKeys.map((key, i) => (
               <Badge
-                key={option}
-                variant={dietary.includes(option) ? 'default' : 'outline'}
+                key={key}
+                variant={dietary.includes(dietaryValues[i]) ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => toggleDietary(option)}
+                onClick={() => toggleDietary(dietaryValues[i])}
               >
-                {option}
+                {t(key)}
               </Badge>
             ))}
           </div>
@@ -144,13 +144,12 @@ const Profile = () => {
 
       <Button onClick={handleSave} className="w-full" disabled={saving}>
         <Save className="h-4 w-4 mr-2" />
-        {saving ? 'A guardar...' : 'Guardar Alterações'}
+        {saving ? t('profileSaving') : t('profileSave')}
       </Button>
 
-      {/* FAQ */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Perguntas Frequentes</CardTitle>
+          <CardTitle className="text-base">{t('profileFAQ')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible>
@@ -165,7 +164,7 @@ const Profile = () => {
       </Card>
 
       <Button variant="outline" onClick={signOut} className="w-full text-destructive">
-        Terminar Sessão
+        {t('profileSignOut')}
       </Button>
     </div>
   );
