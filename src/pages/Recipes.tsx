@@ -1,25 +1,41 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { recipes, categoryLabels, type Recipe } from '@/data/recipes';
+import { recipes, type Recipe } from '@/data/recipes';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Heart, Clock, Flame, Search, X } from 'lucide-react';
+import { Heart, Clock, Flame, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getFriendlyError } from '@/lib/error-utils';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const categories = ['all', 'breakfast', 'lunch', 'dinner', 'snack', 'dessert'] as const;
+
+const difficultyMap: Record<string, string> = {
+  'fácil': 'diffEasy',
+  'médio': 'diffMedium',
+  'difícil': 'diffHard',
+};
 
 const Recipes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('all');
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
+
+  const categoryLabels: Record<string, string> = {
+    breakfast: t('catBreakfast'),
+    lunch: t('catLunch'),
+    dinner: t('catDinner'),
+    snack: t('catSnack'),
+    dessert: t('catDessert'),
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -33,19 +49,19 @@ const Recipes = () => {
     if (favIds.includes(recipeId)) {
       const { error } = await supabase.from('favorites').delete().eq('user_id', user.id).eq('recipe_id', recipeId);
       if (error) {
-        toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
+        toast({ title: t('recipesError'), description: getFriendlyError(error), variant: 'destructive' });
         return;
       }
       setFavIds((prev) => prev.filter((id) => id !== recipeId));
-      toast({ title: 'Removido dos favoritos' });
+      toast({ title: t('recipesFavRemoved') });
     } else {
       const { error } = await supabase.from('favorites').insert({ user_id: user.id, recipe_id: recipeId });
       if (error) {
-        toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
+        toast({ title: t('recipesError'), description: getFriendlyError(error), variant: 'destructive' });
         return;
       }
       setFavIds((prev) => [...prev, recipeId]);
-      toast({ title: 'Adicionado aos favoritos ❤️' });
+      toast({ title: t('recipesFavAdded') });
     }
   };
 
@@ -55,22 +71,25 @@ const Recipes = () => {
     return matchCat && matchSearch;
   });
 
+  const translateRestriction = (r: string) => {
+    const key = `restriction${r}` as any;
+    return t(key) || r;
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Receitas</h1>
+      <h1 className="text-2xl font-bold text-foreground">{t('recipesTitle')}</h1>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Pesquisar receitas..."
+          placeholder={t('recipesSearch')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
         />
       </div>
 
-      {/* Category filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {categories.map((cat) => (
           <Button
@@ -80,12 +99,11 @@ const Recipes = () => {
             onClick={() => setCategory(cat)}
             className="shrink-0"
           >
-            {cat === 'all' ? 'Todas' : categoryLabels[cat]}
+            {cat === 'all' ? t('recipesAll') : categoryLabels[cat]}
           </Button>
         ))}
       </div>
 
-      {/* Recipe grid */}
       <div className="grid gap-3">
         {filtered.map((recipe) => (
           <Card key={recipe.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelected(recipe)}>
@@ -109,11 +127,10 @@ const Recipes = () => {
           </Card>
         ))}
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">Nenhuma receita encontrada.</p>
+          <p className="text-center text-muted-foreground py-8">{t('recipesNoResults')}</p>
         )}
       </div>
 
-      {/* Recipe detail sheet */}
       <Sheet open={!!selected} onOpenChange={() => setSelected(null)}>
         <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-2xl">
           {selected && (
@@ -126,22 +143,20 @@ const Recipes = () => {
               </SheetHeader>
 
               <div className="mt-4 space-y-4">
-                {/* Badges */}
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">{categoryLabels[selected.category]}</Badge>
-                  <Badge variant="outline">{selected.difficulty}</Badge>
+                  <Badge variant="outline">{t((difficultyMap[selected.difficulty] || 'diffEasy') as any)}</Badge>
                   {selected.restrictions.map((r) => (
-                    <Badge key={r} variant="outline" className="text-xs">{r}</Badge>
+                    <Badge key={r} variant="outline" className="text-xs">{translateRestriction(r)}</Badge>
                   ))}
                 </div>
 
-                {/* Nutrition */}
                 <div className="grid grid-cols-4 gap-2 text-center">
                   {[
-                    { label: 'Calorias', value: `${selected.calories}`, unit: 'kcal' },
-                    { label: 'Proteína', value: `${selected.protein}`, unit: 'g' },
-                    { label: 'Carbos', value: `${selected.carbs}`, unit: 'g' },
-                    { label: 'Gordura', value: `${selected.fat}`, unit: 'g' },
+                    { label: t('nutritionCalories'), value: `${selected.calories}`, unit: 'kcal' },
+                    { label: t('nutritionProtein'), value: `${selected.protein}`, unit: 'g' },
+                    { label: t('nutritionCarbs'), value: `${selected.carbs}`, unit: 'g' },
+                    { label: t('nutritionFat'), value: `${selected.fat}`, unit: 'g' },
                   ].map((n) => (
                     <div key={n.label} className="rounded-lg bg-muted p-2">
                       <p className="text-lg font-bold text-foreground">{n.value}</p>
@@ -151,9 +166,8 @@ const Recipes = () => {
                   ))}
                 </div>
 
-                {/* Ingredients */}
                 <div>
-                  <h3 className="font-semibold mb-2">Ingredientes</h3>
+                  <h3 className="font-semibold mb-2">{t('recipesIngredients')}</h3>
                   <ul className="space-y-1">
                     {selected.ingredients.map((ing, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -163,9 +177,8 @@ const Recipes = () => {
                   </ul>
                 </div>
 
-                {/* Steps */}
                 <div>
-                  <h3 className="font-semibold mb-2">Modo de Preparo</h3>
+                  <h3 className="font-semibold mb-2">{t('recipesSteps')}</h3>
                   <ol className="space-y-2">
                     {selected.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 text-sm">

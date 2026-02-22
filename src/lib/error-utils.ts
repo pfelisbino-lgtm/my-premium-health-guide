@@ -1,36 +1,34 @@
 /**
- * Maps Supabase/auth error details to user-friendly Portuguese messages.
- * Prevents leaking internal schema or constraint information.
+ * Maps Supabase/auth error details to user-friendly messages.
+ * Uses translation keys that get resolved by the i18n system.
+ * Falls back to English messages for immediate use.
  */
 const errorMap: Record<string, string> = {
   // Auth errors
-  invalid_credentials: 'Email ou password incorretos.',
-  'Invalid login credentials': 'Email ou password incorretos.',
-  email_not_confirmed: 'Email ainda não confirmado. Verifique a sua caixa de entrada.',
-  user_already_exists: 'Este email já está registado.',
-  'User already registered': 'Este email já está registado.',
-  weak_password: 'A password deve ter pelo menos 6 caracteres.',
+  invalid_credentials: 'Incorrect email or password.',
+  'Invalid login credentials': 'Incorrect email or password.',
+  email_not_confirmed: 'Email not yet confirmed. Check your inbox.',
+  user_already_exists: 'This email is already registered.',
+  'User already registered': 'This email is already registered.',
+  weak_password: 'Password must be at least 6 characters.',
   // Postgres / RLS errors
-  '42501': 'Não tem permissão para executar esta ação.',
-  '23505': 'Este registo já existe.',
-  '23503': 'Referência inválida. Verifique os dados.',
-  '23514': 'Dados fora dos limites permitidos.',
-  PGRST301: 'Não tem permissão para aceder a este recurso.',
+  '42501': 'You do not have permission to perform this action.',
+  '23505': 'This record already exists.',
+  '23503': 'Invalid reference. Please check the data.',
+  '23514': 'Data out of allowed range.',
+  PGRST301: 'You do not have permission to access this resource.',
 };
 
 export function getFriendlyError(error: unknown): string {
-  if (!error || typeof error !== 'object') return 'Ocorreu um erro. Tente novamente.';
+  if (!error || typeof error !== 'object') return 'An error occurred. Please try again.';
 
   const err = error as Record<string, any>;
-  // Try matching by code
   if (err.code && errorMap[err.code]) return errorMap[err.code];
-  // Try matching by message text
   if (err.message && typeof err.message === 'string') {
     for (const [key, value] of Object.entries(errorMap)) {
       if (err.message.includes(key)) return value;
     }
   }
-  // Log for debugging (console only, not shown to user)
   console.error('[App Error]', err.code, err.message);
-  return 'Ocorreu um erro. Tente novamente.';
+  return 'An error occurred. Please try again.';
 }

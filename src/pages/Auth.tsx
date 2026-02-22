@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { getFriendlyError } from '@/lib/error-utils';
 import { Leaf, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
@@ -19,6 +21,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +29,7 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro ao entrar', description: getFriendlyError(error), variant: 'destructive' });
+      toast({ title: t('authLoginError'), description: getFriendlyError(error), variant: 'destructive' });
     } else {
       navigate('/');
     }
@@ -45,9 +48,9 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro ao registar', description: getFriendlyError(error), variant: 'destructive' });
+      toast({ title: t('authRegisterError'), description: getFriendlyError(error), variant: 'destructive' });
     } else {
-      toast({ title: 'Registo efetuado!', description: 'Verifique o seu email para confirmar a conta.' });
+      toast({ title: t('authRegisterSuccess'), description: t('authRegisterSuccessDesc') });
       setMode('login');
     }
   };
@@ -60,9 +63,9 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro', description: getFriendlyError(error), variant: 'destructive' });
+      toast({ title: t('authError'), description: getFriendlyError(error), variant: 'destructive' });
     } else {
-      toast({ title: 'Email enviado', description: 'Verifique a sua caixa de entrada.' });
+      toast({ title: t('authEmailSent'), description: t('authEmailSentDesc') });
       setMode('login');
     }
   };
@@ -75,65 +78,68 @@ const Auth = () => {
             <Leaf className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">My Glowfit</h1>
-          <p className="text-sm text-muted-foreground">O teu guia para uma vida mais saudável</p>
+          <p className="text-sm text-muted-foreground">{t('appTagline')}</p>
+          <div className="mt-2 flex justify-center">
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>
-              {mode === 'login' && 'Entrar'}
-              {mode === 'register' && 'Criar Conta'}
-              {mode === 'forgot' && 'Recuperar Senha'}
+              {mode === 'login' && t('authLogin')}
+              {mode === 'register' && t('authRegister')}
+              {mode === 'forgot' && t('authForgotPassword')}
             </CardTitle>
             <CardDescription>
-              {mode === 'login' && 'Acede à tua conta premium'}
-              {mode === 'register' && 'Regista-te para começar a tua jornada'}
-              {mode === 'forgot' && 'Introduz o teu email para recuperar a senha'}
+              {mode === 'login' && t('authLoginDesc')}
+              {mode === 'register' && t('authRegisterDesc')}
+              {mode === 'forgot' && t('authForgotDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={mode === 'login' ? handleLogin : mode === 'register' ? handleRegister : handleForgotPassword} className="space-y-4">
               {mode === 'register' && (
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="O teu nome" required />
+                  <Label htmlFor="name">{t('authFullName')}</Label>
+                  <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('authFullNamePlaceholder')} required />
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemplo.com" required />
+                <Label htmlFor="email">{t('authEmail')}</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('authEmailPlaceholder')} required />
               </div>
               {mode !== 'forgot' && (
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('authPassword')}</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
                 </div>
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'A processar...' : mode === 'login' ? 'Entrar' : mode === 'register' ? 'Criar Conta' : 'Enviar Email'}
+                {loading ? t('authProcessing') : mode === 'login' ? t('authSubmitLogin') : mode === 'register' ? t('authSubmitRegister') : t('authSubmitForgot')}
               </Button>
             </form>
 
             <div className="mt-4 space-y-2 text-center text-sm">
               {mode === 'login' && (
                 <>
-                  <button onClick={() => setMode('forgot')} className="text-primary hover:underline block mx-auto">Esqueci a senha</button>
+                  <button onClick={() => setMode('forgot')} className="text-primary hover:underline block mx-auto">{t('authForgotLink')}</button>
                   <p className="text-muted-foreground">
-                    Não tens conta?{' '}
-                    <button onClick={() => setMode('register')} className="text-primary hover:underline">Criar conta</button>
+                    {t('authNoAccount')}{' '}
+                    <button onClick={() => setMode('register')} className="text-primary hover:underline">{t('authCreateAccount')}</button>
                   </p>
                 </>
               )}
               {mode === 'register' && (
                 <p className="text-muted-foreground">
-                  Já tens conta?{' '}
-                  <button onClick={() => setMode('login')} className="text-primary hover:underline">Entrar</button>
+                  {t('authHasAccount')}{' '}
+                  <button onClick={() => setMode('login')} className="text-primary hover:underline">{t('authLoginLink')}</button>
                 </p>
               )}
               {mode === 'forgot' && (
                 <button onClick={() => setMode('login')} className="text-primary hover:underline inline-flex items-center gap-1">
-                  <ArrowLeft className="h-3 w-3" /> Voltar ao login
+                  <ArrowLeft className="h-3 w-3" /> {t('authBackToLogin')}
                 </button>
               )}
             </div>
