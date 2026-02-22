@@ -45,7 +45,7 @@ const Dashboard = () => {
         <span className="text-6xl mb-4">🔒</span>
         <h2 className="text-xl font-bold text-foreground mb-2">Acesso Premium Necessário</h2>
         <p className="text-muted-foreground max-w-sm">
-          Para aceder ao conteúdo premium, é necessário adquirir o plano HealthJourney. Após a compra, o teu acesso será ativado automaticamente.
+          Para aceder ao conteúdo premium, é necessário adquirir o plano My Glowfit. Após a compra, o teu acesso será ativado automaticamente.
         </p>
       </div>
     );

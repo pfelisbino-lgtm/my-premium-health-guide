@@ -19,7 +19,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-bold text-foreground">
             <span className="text-xl">🌿</span>
-            <span>HealthJourney</span>
+            <span>My Glowfit</span>
           </Link>
           <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors p-2">
             <LogOut className="h-5 w-5" />
