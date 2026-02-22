@@ -17,7 +17,7 @@ const faqs = [
   { q: 'Como funciona o acesso premium?', a: 'Após a compra na Hotmart, o teu acesso é ativado automaticamente via webhook. Basta fazer login com o email usado na compra.' },
   { q: 'Posso cancelar a minha assinatura?', a: 'Sim, podes cancelar a qualquer momento pela plataforma Hotmart. O acesso permanece ativo até o fim do período pago.' },
   { q: 'Como altero as minhas metas?', a: 'Na secção de Perfil, podes editar o teu peso atual e meta de peso a qualquer momento.' },
-  { q: 'Onde encontro suporte?', a: 'Envia um email para suporte@healthjourney.com e responderemos em até 24 horas.' },
+  { q: 'Onde encontro suporte?', a: 'Envia um email para suporte@myglowfit.com e responderemos em até 24 horas.' },
 ];
 
 const Profile = () => {
