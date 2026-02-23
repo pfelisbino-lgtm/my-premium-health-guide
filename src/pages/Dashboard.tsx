@@ -12,8 +12,6 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<{ full_name: string; current_weight: number | null; goal_weight: number | null } | null>(null);
-  const [subscription, setSubscription] = useState<string>('inactive');
-
   const tips = [t('tip1'), t('tip2'), t('tip3'), t('tip4'), t('tip5')];
   const dailyTip = tips[new Date().getDate() % tips.length];
   const dailyRecipe = recipes[new Date().getDate() % recipes.length];
@@ -23,8 +21,6 @@ const Dashboard = () => {
     const load = async () => {
       const { data: p } = await supabase.from('profiles').select('full_name, current_weight, goal_weight').eq('user_id', user.id).single();
       if (p) setProfile(p);
-      const { data: s } = await supabase.from('subscriptions').select('status').eq('user_id', user.id).single();
-      if (s) setSubscription(s.status);
     };
     load();
   }, [user]);
@@ -33,16 +29,6 @@ const Dashboard = () => {
   const weightProgress = profile?.current_weight && profile?.goal_weight
     ? Math.min(100, Math.max(0, ((profile.current_weight - profile.goal_weight) / profile.current_weight) * 100))
     : 0;
-
-  if (subscription === 'inactive') {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-        <span className="text-6xl mb-4">🔒</span>
-        <h2 className="text-xl font-bold text-foreground mb-2">{t('dashPremiumRequired')}</h2>
-        <p className="text-muted-foreground max-w-sm">{t('dashPremiumDesc')}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 animate-fade-in">
