@@ -23,7 +23,6 @@ const Profile = () => {
   const [currentWeight, setCurrentWeight] = useState('');
   const [goalWeight, setGoalWeight] = useState('');
   const [dietary, setDietary] = useState<string[]>([]);
-  const [subStatus, setSubStatus] = useState('inactive');
   const [saving, setSaving] = useState(false);
 
   const faqs = [
@@ -43,8 +42,6 @@ const Profile = () => {
         setGoalWeight(p.goal_weight?.toString() || '');
         setDietary((p.dietary_preferences as string[]) || []);
       }
-      const { data: s } = await supabase.from('subscriptions').select('status').eq('user_id', user.id).single();
-      if (s) setSubStatus(s.status);
     };
     load();
   }, [user]);
@@ -87,14 +84,6 @@ const Profile = () => {
     <div className="space-y-4 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">{t('profileTitle')}</h1>
 
-      <Card>
-        <CardContent className="flex items-center justify-between py-4">
-          <span className="text-sm font-medium">{t('profileSubStatus')}</span>
-          <Badge variant={subStatus === 'active' ? 'default' : 'secondary'}>
-            {subStatus === 'active' ? t('profileActive') : t('profileInactive')}
-          </Badge>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
