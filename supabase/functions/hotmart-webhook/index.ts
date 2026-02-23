@@ -6,6 +6,70 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter (per isolate lifetime)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 30; // max 30 requests per minute per IP
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+// Input validation helpers
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_EVENTS = new Set([
+  "PURCHASE_APPROVED",
+  "PURCHASE_COMPLETE",
+  "PURCHASE_REFUNDED",
+  "PURCHASE_CANCELED",
+  "SUBSCRIPTION_CANCELLATION",
+]);
+
+function validateWebhookPayload(body: unknown): {
+  valid: boolean;
+  error?: string;
+  data?: { hottok: string; event: string; buyerEmail: string; transactionId: string };
+} {
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Invalid payload" };
+  }
+
+  const b = body as Record<string, unknown>;
+
+  const hottok = b.hottok;
+  if (typeof hottok !== "string" || hottok.length === 0 || hottok.length > 512) {
+    return { valid: false, error: "Invalid hottok" };
+  }
+
+  const event = b.event;
+  if (typeof event !== "string" || !ALLOWED_EVENTS.has(event)) {
+    return { valid: false, error: "Invalid or unsupported event type" };
+  }
+
+  const data = b.data as Record<string, unknown> | undefined;
+  const buyerEmail = (data?.buyer as Record<string, unknown>)?.email;
+  if (typeof buyerEmail !== "string" || !EMAIL_REGEX.test(buyerEmail) || buyerEmail.length > 255) {
+    return { valid: false, error: "Invalid or missing buyer email" };
+  }
+
+  const transactionId = (data?.purchase as Record<string, unknown>)?.transaction;
+  if (typeof transactionId !== "string" || transactionId.length === 0 || transactionId.length > 255) {
+    return { valid: false, error: "Invalid or missing transaction ID" };
+  }
+
+  return {
+    valid: true,
+    data: { hottok, event, buyerEmail: buyerEmail.toLowerCase().trim(), transactionId: transactionId.trim() },
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,8 +82,28 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Rate limiting
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (isRateLimited(clientIp)) {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const body = await req.json();
+
+    // Validate and extract payload
+    const validation = validateWebhookPayload(body);
+    if (!validation.valid || !validation.data) {
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { hottok, event, buyerEmail, transactionId } = validation.data;
 
     // Validate Hotmart webhook token (hottok)
     const webhookSecret = Deno.env.get("HOTMART_WEBHOOK_SECRET");
@@ -31,23 +115,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const hottok = body.hottok;
     if (hottok !== webhookSecret) {
       console.error("Invalid hottok received");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Extract event and buyer info
-    const event = body.event;
-    const buyerEmail = body.data?.buyer?.email;
-    const transactionId = body.data?.purchase?.transaction;
-
-    if (!buyerEmail || !transactionId) {
-      return new Response(JSON.stringify({ error: "Missing buyer email or transaction ID" }), {
-        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -94,7 +165,7 @@ Deno.serve(async (req) => {
           status: "active",
           activated_at: new Date().toISOString(),
           hotmart_transaction_id: transactionId,
-          expires_at: null, // Lifetime or managed by Hotmart
+          expires_at: null,
         })
         .eq("user_id", user.id);
 
@@ -130,8 +201,6 @@ Deno.serve(async (req) => {
       }
 
       console.log("Subscription deactivated for user:", user.id);
-    } else {
-      console.log("Unhandled event type:", event);
     }
 
     return new Response(JSON.stringify({ message: "OK" }), {
