@@ -29,6 +29,8 @@ export function getFriendlyError(error: unknown): string {
       if (err.message.includes(key)) return value;
     }
   }
-  console.error('[App Error]', err.code, err.message);
+  if (import.meta.env.DEV) {
+    console.error('[App Error]', err.code, err.message);
+  }
   return 'An error occurred. Please try again.';
 }
