@@ -42,7 +42,8 @@ const Auth = () => {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        // Removed data: { full_name: fullName } as it might cause issues if the 'full_name' column doesn't exist or is not handled correctly by Supabase.
+        // User metadata can be updated after successful registration if needed.
         emailRedirectTo: window.location.origin,
       },
     });
