@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, UtensilsCrossed, User, LogOut } from 'lucide-react';
+import { Home, UtensilsCrossed, User, LogOut, Activity } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -13,6 +13,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const navItems = [
     { to: '/', icon: Home, label: t('navHome') },
     { to: '/recipes', icon: UtensilsCrossed, label: t('navRecipes') },
+    { to: '/metabolic', icon: Activity, label: 'Metabolic' },
     { to: '/profile', icon: User, label: t('navProfile') },
   ];
 

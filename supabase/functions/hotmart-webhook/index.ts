@@ -130,16 +130,23 @@ Deno.serve(async (req) => {
     );
 
     // Look up user by email
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(buyerEmail);
-    if (userError || !userData?.user) {
-      console.error("User lookup failed:", userError?.message ?? "not found");
+    const { data: usersData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    if (userError) {
+      console.error("User lookup failed:", userError.message);
+      return new Response(JSON.stringify({ error: "User lookup failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const user = usersData?.users?.find((u) => u.email?.toLowerCase() === buyerEmail);
+    if (!user) {
+      console.error("User not found for email:", buyerEmail);
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const user = userData.user;
 
     // Handle different Hotmart events
     if (event === "PURCHASE_APPROVED" || event === "PURCHASE_COMPLETE") {

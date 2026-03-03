@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_composition_logs: {
+        Row: {
+          body_fat_pct: number | null
+          created_at: string
+          id: string
+          lean_mass: number | null
+          logged_at: string
+          user_id: string
+          waist_cm: number | null
+          water_retention: number | null
+          weight: number | null
+        }
+        Insert: {
+          body_fat_pct?: number | null
+          created_at?: string
+          id?: string
+          lean_mass?: number | null
+          logged_at?: string
+          user_id: string
+          waist_cm?: number | null
+          water_retention?: number | null
+          weight?: number | null
+        }
+        Update: {
+          body_fat_pct?: number | null
+          created_at?: string
+          id?: string
+          lean_mass?: number | null
+          logged_at?: string
+          user_id?: string
+          waist_cm?: number | null
+          water_retention?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      daily_checkins: {
+        Row: {
+          appetite: number
+          created_at: string
+          energy_level: number
+          id: string
+          logged_at: string
+          mood: number
+          sleep_quality: number
+          user_id: string
+        }
+        Insert: {
+          appetite: number
+          created_at?: string
+          energy_level: number
+          id?: string
+          logged_at?: string
+          mood: number
+          sleep_quality: number
+          user_id: string
+        }
+        Update: {
+          appetite?: number
+          created_at?: string
+          energy_level?: number
+          id?: string
+          logged_at?: string
+          mood?: number
+          sleep_quality?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -35,34 +104,85 @@ export type Database = {
         }
         Relationships: []
       }
+      hunger_assessments: {
+        Row: {
+          created_at: string
+          hunger_index: number | null
+          id: string
+          logged_at: string
+          notes: string | null
+          user_id: string
+          would_eat_chicken: boolean
+        }
+        Insert: {
+          created_at?: string
+          hunger_index?: number | null
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          user_id: string
+          would_eat_chicken: boolean
+        }
+        Update: {
+          created_at?: string
+          hunger_index?: number | null
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          user_id?: string
+          would_eat_chicken?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          activity_level: string | null
+          adaptive_metabolism: boolean
+          birth_date: string | null
           created_at: string
           current_weight: number | null
           dietary_preferences: string[] | null
           full_name: string
           goal_weight: number | null
+          height_cm: number | null
           id: string
+          level: number
+          points: number
+          streak_days: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          activity_level?: string | null
+          adaptive_metabolism?: boolean
+          birth_date?: string | null
           created_at?: string
           current_weight?: number | null
           dietary_preferences?: string[] | null
           full_name?: string
           goal_weight?: number | null
+          height_cm?: number | null
           id?: string
+          level?: number
+          points?: number
+          streak_days?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          activity_level?: string | null
+          adaptive_metabolism?: boolean
+          birth_date?: string | null
           created_at?: string
           current_weight?: number | null
           dietary_preferences?: string[] | null
           full_name?: string
           goal_weight?: number | null
+          height_cm?: number | null
           id?: string
+          level?: number
+          points?: number
+          streak_days?: number
           updated_at?: string
           user_id?: string
         }
