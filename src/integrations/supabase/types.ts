@@ -134,6 +134,48 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_logs: {
+        Row: {
+          ai_notes: string | null
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          fats_g: number | null
+          id: string
+          image_url: string | null
+          logged_at: string
+          meal_name: string
+          protein_g: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_notes?: string | null
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fats_g?: number | null
+          id?: string
+          image_url?: string | null
+          logged_at?: string
+          meal_name?: string
+          protein_g?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_notes?: string | null
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fats_g?: number | null
+          id?: string
+          image_url?: string | null
+          logged_at?: string
+          meal_name?: string
+          protein_g?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           activity_level: string | null
