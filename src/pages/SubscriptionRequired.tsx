@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
-const HOTMART_SALES_URL = 'https://pay.hotmart.com/YOUR_PRODUCT_ID';
+const HOTMART_SALES_URL = 'https://my-glowfit-quiz.vercel.app/app_sales.html';
 
 const SubscriptionRequired = () => {
   const { signOut } = useAuth();

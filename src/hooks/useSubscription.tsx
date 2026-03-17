@@ -16,6 +16,16 @@ export const useSubscription = () => {
 
     const check = async () => {
       setLoading(true);
+
+      // --- Admin Bypass ---
+      const adminEmails = ['pfelisbino@yahoo.com', 'pfelisbino28@gmail.com', 'eusoudiullian@gmail.com'];
+      if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+        console.log("Admin access granted.");
+        setIsActive(true);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('subscriptions')
         .select('status, expires_at')
